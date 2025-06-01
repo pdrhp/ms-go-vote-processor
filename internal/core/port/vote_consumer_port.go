@@ -6,7 +6,7 @@ import (
 	"github.com/pdrhp/ms-voto-processor-go/internal/core/entity"
 )
 
-type VoteConsumer interface {
+type VoteConsumerPort interface {
     Consume(ctx context.Context) (<-chan *entity.Vote, error)
     Close() error
 }
