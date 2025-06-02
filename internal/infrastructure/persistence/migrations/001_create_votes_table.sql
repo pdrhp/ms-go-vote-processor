@@ -1,13 +1,17 @@
 CREATE TABLE IF NOT EXISTS votes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    candidate_id VARCHAR(255) NOT NULL,
+    id VARCHAR(255) PRIMARY KEY,
+    participant_id INTEGER NOT NULL,
     session_id VARCHAR(255) NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    timestamp TIMESTAMP NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'received',
     processed_at TIMESTAMP NULL,
+    processing_error TEXT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_votes_candidate_id ON votes(candidate_id);
-CREATE INDEX idx_votes_session_id ON votes(session_id);
-CREATE INDEX idx_votes_status ON votes(status);
+CREATE INDEX IF NOT EXISTS idx_votes_participant_id ON votes(participant_id);
+CREATE INDEX IF NOT EXISTS idx_votes_session_id ON votes(session_id);
+CREATE INDEX IF NOT EXISTS idx_votes_status ON votes(status);
+CREATE INDEX IF NOT EXISTS idx_votes_timestamp ON votes(timestamp);
+CREATE INDEX IF NOT EXISTS idx_votes_created_at ON votes(created_at);
