@@ -9,19 +9,16 @@ import (
 
 	"github.com/pdrhp/ms-voto-processor-go/internal/core/entity"
 	"github.com/pdrhp/ms-voto-processor-go/internal/core/port"
-	"github.com/pdrhp/ms-voto-processor-go/internal/infrastructure/persistence/mappers"
 	"github.com/pdrhp/ms-voto-processor-go/internal/infrastructure/persistence/models"
 )
 
 type PostgresVoteRepository struct {
 	db     *sql.DB
-	mapper *mappers.VoteMapper
 }
 
 func NewPostgresVoteRepository(database *Database) port.VoteRepositoryPort {
 	return &PostgresVoteRepository{
 		db:     database.DB,
-		mapper: mappers.NewVoteMapper(),
 	}
 }
 
@@ -34,7 +31,8 @@ func (r *PostgresVoteRepository) Save(ctx context.Context, vote *entity.Vote) er
 		return fmt.Errorf("invalid vote: %w", err)
 	}
 
-	model := r.mapper.ToModel(vote)
+	model := &models.VoteModel{}
+	model.FromEntity(vote)
 
 	query := `
 		INSERT INTO votes (
@@ -85,7 +83,7 @@ func (r *PostgresVoteRepository) BulkSave(ctx context.Context, votes []*entity.V
 		}
 	}
 
-	models := r.mapper.ToModels(votes)
+	models := r.convertToModels(votes)
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -105,6 +103,18 @@ func (r *PostgresVoteRepository) BulkSave(ctx context.Context, votes []*entity.V
 	}
 
 	return nil
+}
+
+func (r *PostgresVoteRepository) convertToModels(votes []*entity.Vote) []*models.VoteModel {
+	modelsList := make([]*models.VoteModel, len(votes))
+
+	for i, vote := range votes {
+		model := &models.VoteModel{}
+		model.FromEntity(vote)
+		modelsList[i] = model
+	}
+
+	return modelsList
 }
 
 func (r *PostgresVoteRepository) buildBulkInsertQuery(models []*models.VoteModel) (string, []interface{}) {
